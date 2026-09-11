@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "test:system": "node --test test/system/glicose.test.cjs",
+    "test:db:prepare": "node scripts/prepare-test-db.cjs"
   },
   "keywords": [],
   "author": "",
