@@ -2,11 +2,9 @@ name: API Tests
 
 on:
   pull_request:
-    branches:
-      - main
+    types: [opened, reopened, synchronize]
   push:
-    branches:
-      - main
+    branches: ['**']
 
 permissions:
   contents: read
@@ -15,6 +13,23 @@ jobs:
   test:
     name: API Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: insulog_test
+          POSTGRES_PASSWORD: insulog_test
+          POSTGRES_DB: insulog_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U insulog_test -d insulog_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      TEST_DATABASE_URL: postgres://insulog_test:insulog_test@127.0.0.1:5432/insulog_test
 
     steps:
       - name: Baixar código
@@ -29,5 +44,11 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Executar testes
-        run: npm test
+      - name: Preparar schema de teste
+        run: npm run test:db:prepare
+
+      - name: Executar verificações existentes
+        run: node --test test/smoke.test.cjs test/integration/api.integration.test.cjs
+
+      - name: Executar teste de sistema
+        run: npm run test:system

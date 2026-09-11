@@ -12,8 +12,10 @@ const PORT = process.env.PORT || 3000
 async function startServer() {
   await testDatabaseConnection();
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor rodando em http://${getLocalIP()}:${PORT}`);
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    const port = server.address().port
+    console.log(`Servidor rodando em http://${getLocalIP()}:${port}`);
+    if (process.send) process.send({ type: 'listening', port })
   });
 }
 
