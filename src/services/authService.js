@@ -1,8 +1,9 @@
 const userRepository = require('../repositories/userRepository')
 const passwordService = require('./passwordService')
+const { issueToken } = require('./authTokenService')
 
 async function login(credentials) {
-  const { username, password } = credentials
+  const { username, password } = credentials || {}
 
   if (!username || !password) {
     const error = new Error('Username e password sao obrigatorios.')
@@ -23,7 +24,8 @@ async function login(credentials) {
       id: user.id_usuario,
       username: user.nome,
       email: user.email,
-      tipo_usuario: user.tipo_usuario
+      tipo_usuario: user.tipo_usuario,
+      token: issueToken(user)
     }
   }
 }

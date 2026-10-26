@@ -11,6 +11,7 @@ async function main() {
       await client.query('BEGIN')
       await client.query(await readFile(path.join(__dirname, '../test/fixtures/base-schema.sql'), 'utf8'))
       await client.query(await readFile(path.join(__dirname, '../src/config/registro-glicose-schema.sql'), 'utf8'))
+      await client.query(await readFile(path.join(__dirname, '../migrations/20261026_medical_link.sql'), 'utf8'))
       await client.query('COMMIT')
       console.log('Schema de teste preparado em insulog_test')
     } catch (error) {

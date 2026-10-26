@@ -35,9 +35,7 @@ async function deleteById(id) {
 }
 
 async function createUser(data) {
-  const { nome, email, senha, tipo_login, tipo_usuario, id_medico, crm } = data
-
-  console.log('createUser:', data)
+  const { nome, email, senha, tipo_login, tipo_usuario, crm } = data
 
   if (!nome || !email || !senha || !tipo_login || !tipo_usuario) {
     const error = new Error('Todos os campos sao obrigatorios')
@@ -70,7 +68,7 @@ async function createUser(data) {
   const senhaCriptografada = passwordService.hashPassword(senha)
 
   return await userRepository.create(
-    { nome, email, senha: senhaCriptografada, tipo_login, tipo_usuario, id_medico, crm },
+    { nome, email, senha: senhaCriptografada, tipo_login, tipo_usuario, crm },
     tipoNormalizado
   )
 }

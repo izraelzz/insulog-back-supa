@@ -2,7 +2,7 @@ const configuracaoService = require('../services/configuracaoService')
 
 async function index(req, res, next) {
   try {
-    const configuracoes = await configuracaoService.listConfiguracoes()
+    const configuracoes = await configuracaoService.listConfiguracoes(req.auth.userId)
     return res.status(200).json(configuracoes)
   } catch (error) {
     next(error)

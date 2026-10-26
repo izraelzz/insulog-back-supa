@@ -1,13 +1,21 @@
 const express = require('express')
 const exportacaoController = require('../controllers/exportacaoController')
+const {
+  requireAuth,
+  requireOwnUserId,
+  requireOwnedResource
+} = require('../middlewares/requireAuth')
 
 const router = express.Router()
 
-router.get('/', exportacaoController.index)
 router.get('/relatorio', exportacaoController.gerarRelatorio)
-router.get('/:id', exportacaoController.show)
-router.post('/', exportacaoController.create)
-router.put('/:id', exportacaoController.update)
-router.delete('/:id', exportacaoController.deleteById)
+
+router.use(requireAuth)
+
+router.get('/', exportacaoController.index)
+router.get('/:id', requireOwnedResource('exportacao', 'id_exportacao'), exportacaoController.show)
+router.post('/', requireOwnUserId, exportacaoController.create)
+router.put('/:id', requireOwnedResource('exportacao', 'id_exportacao'), requireOwnUserId, exportacaoController.update)
+router.delete('/:id', requireOwnedResource('exportacao', 'id_exportacao'), exportacaoController.deleteById)
 
 module.exports = router

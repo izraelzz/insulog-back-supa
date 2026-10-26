@@ -28,7 +28,7 @@ async function findByUserId(id_usuario, quantidade) {
       ri.id_tipo_insulina,
       ri.unidade_insulina,
       rg.id_usuario,
-      rg.data_hora,
+      to_char(rg.data_hora, 'YYYY-MM-DD HH24:MI:SS') AS data_hora,
       ti.nome AS tipo_insulina
     FROM registroinsulina ri
     INNER JOIN registroglicose rg ON rg.id_registro = ri.id_registro

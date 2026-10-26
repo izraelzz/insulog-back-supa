@@ -1,6 +1,7 @@
 const { test } = require('node:test')
 const assert = require('node:assert/strict')
 const loadService = require('../helpers/load-service.cjs')
+const { verifyToken } = require('../../src/services/authTokenService')
 
 function setup(t, repository = {}, password = {}) {
   return loadService(t, 'authService', {
@@ -39,7 +40,15 @@ test('login valido retorna apenas dados publicos do usuario', async t => {
   const verify = t.mock.fn(() => true)
   const service = setup(t, { findByLogin: find }, { verifyPassword: verify })
   const result = await service.login({ username: 'ana@example.com', password: 'senha' })
-  assert.deepEqual(result, { user: { id: 42, username: 'Ana', email: 'ana@example.com', tipo_usuario: 'paciente' } })
+  assert.deepEqual(Object.keys(result.user).sort(), ['email', 'id', 'tipo_usuario', 'token', 'username'])
+  assert.deepEqual({ ...result.user, token: undefined }, {
+    id: 42,
+    username: 'Ana',
+    email: 'ana@example.com',
+    tipo_usuario: 'paciente',
+    token: undefined
+  })
+  assert.deepEqual(verifyToken(result.user.token), { userId: 42, role: 'paciente' })
   assert.deepEqual(find.mock.calls[0].arguments, ['ana@example.com'])
   assert.deepEqual(verify.mock.calls[0].arguments, ['senha', 'hash-ficticio'])
   assert.equal(find.mock.callCount(), 1)

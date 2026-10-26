@@ -46,7 +46,7 @@ for (const type of ['paciente', 'MEDICO']) {
     assert.equal(await service.createUser(data), created)
     assert.deepEqual(hash.mock.calls[0].arguments, ['ficticia'])
     assert.deepEqual(create.mock.calls[0].arguments, [
-      { ...data, senha: 'hash-ficticio', id_medico: undefined }, type.toLowerCase()
+      { ...data, senha: 'hash-ficticio' }, type.toLowerCase()
     ])
     assert.equal(create.mock.callCount(), 1)
     assert.equal(data.senha, 'ficticia')

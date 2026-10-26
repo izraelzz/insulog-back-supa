@@ -11,7 +11,10 @@ async function login(req, res) {
       })
     }
 
-    console.error(error)
+    console.error('Falha ao autenticar', {
+      name: error.name,
+      code: error.code
+    })
 
     return res.status(500).json({
       message: 'Erro interno do servidor.'

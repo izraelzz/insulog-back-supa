@@ -1,6 +1,8 @@
 const express = require('express')
 const authRoutes = require('./routes/authRoutes')
 const userRoutes = require('./routes/userRoutes')
+const doctorRoutes = require('./routes/doctorRoutes')
+const patientRoutes = require('./routes/patientRoutes')
 const typeInsuRoutes = require('./routes/typeInsuRoutes')
 const periodoRoutes = require('./routes/periodoRoutes')
 const registroGlicoseRoutes = require('./routes/registroGlicoseRoutes')
@@ -14,11 +16,11 @@ const app = express()
 
 app.use((req, res, next) => {
   const inicio = Date.now()
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`)
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`)
 
   res.on('finish', () => {
     const duracao = Date.now() - inicio
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${duracao}ms)`)
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} -> ${res.statusCode} (${duracao}ms)`)
   })
 
   next()
@@ -29,32 +31,23 @@ app.use((req, res, next) => {
   const originalSend = res.send.bind(res)
   let retornoRegistrado = false
 
-  function registrarRetorno(body) {
-    if (retornoRegistrado) {
-      return
-    }
-
+  function registrarRetorno() {
+    if (retornoRegistrado) return
     retornoRegistrado = true
-
-    const retorno = Buffer.isBuffer(body)
-      ? body.toString('utf8')
-      : body
-
     console.log('<retorno>', {
       metodo: req.method,
-      rota: req.originalUrl,
-      status: res.statusCode,
-      body: retorno
+      rota: req.path,
+      status: res.statusCode
     })
   }
 
   res.json = function jsonInterceptado(body) {
-    registrarRetorno(body)
+    registrarRetorno()
     return originalJson(body)
   }
 
   res.send = function sendInterceptado(body) {
-    registrarRetorno(body)
+    registrarRetorno()
     return originalSend(body)
   }
 
@@ -64,7 +57,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'http://localhost:5173')
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-  res.header('Access-Control-Allow-Headers', 'Content-Type')
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
   if (req.method === 'OPTIONS') {
     return res.sendStatus(204)
@@ -77,11 +70,7 @@ app.use(express.json())
 
 app.use((req, res, next) => {
   if (Object.keys(req.query).length > 0) {
-    console.log('Query:', req.query)
-  }
-
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log('Body:', req.body)
+    console.log('Query parameters received')
   }
 
   next()
@@ -95,6 +84,8 @@ app.get('/', (req, res) => {
 
 app.use('/', authRoutes)
 app.use('/usuarios', userRoutes)
+app.use('/medicos', doctorRoutes)
+app.use('/pacientes', patientRoutes)
 app.use('/tipos-insulina', typeInsuRoutes)
 app.use('/periodos', periodoRoutes)
 app.use('/registros-glicose', registroGlicoseRoutes)

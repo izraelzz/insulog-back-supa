@@ -3,7 +3,7 @@ const db = dataBase.pool
 
 async function findAll() {
   const [rows] = await db.execute(
-    'SELECT * FROM usuario ORDER BY id_usuario ASC'
+    'SELECT id_usuario, nome, email, tipo_login, tipo_usuario FROM usuario ORDER BY id_usuario ASC'
   )
 
   return rows
@@ -50,7 +50,7 @@ async function findById(id) {
 
 async function findByEmail(email) {
   const [rows] = await db.execute(
-    'SELECT id_usuario, nome, email, tipo_login, tipo_usuario FROM usuario WHERE email = ?',
+    'SELECT id_usuario, nome, email, tipo_login, tipo_usuario FROM usuario WHERE LOWER(email) = LOWER(?)',
     [email]
   )
 
@@ -58,13 +58,23 @@ async function findByEmail(email) {
 }
 
 async function findByLogin(username) {
+  const identifier = typeof username === 'string' ? username.trim() : ''
+  const byEmail = identifier.includes('@')
   const [rows] = await db.execute(
     `SELECT id_usuario, nome, email, senha, tipo_login, tipo_usuario
      FROM usuario
-     WHERE email = ? OR nome = ?
-     LIMIT 1`,
-    [username, username]
+     WHERE ${byEmail
+    ? 'LOWER(email) = LOWER(?)'
+    : "LOWER(nome) = LOWER(?) OR LOWER(split_part(btrim(nome), ' ', 1)) = LOWER(?)"}
+     LIMIT 2`,
+    byEmail ? [identifier] : [identifier, identifier]
   )
+
+  if (rows.length > 1) {
+    const error = new Error('Use seu e-mail para entrar com este nome.')
+    error.statusCode = 400
+    throw error
+  }
 
   return rows[0]
 }
@@ -79,8 +89,7 @@ async function findByType(tipo_usuario) {
 }
 
 async function create(user, tipoNormalizado) {
-  const { nome, email, senha, tipo_login, tipo_usuario, id_medico, crm } = user
-  const medicoId = id_medico || 16
+  const { nome, email, senha, tipo_login, tipo_usuario, crm } = user
 
   const conn = await db.getConnection()
 
@@ -103,8 +112,8 @@ async function create(user, tipoNormalizado) {
 
     if (tipoNormalizado === 'paciente') {
       await conn.execute(
-        `INSERT INTO paciente (id_usuario, id_medico) VALUES (?, ?)`,
-        [idUsuario, medicoId]
+        'INSERT INTO paciente (id_usuario, id_medico) VALUES (?, NULL)',
+        [idUsuario]
       )
     }
 

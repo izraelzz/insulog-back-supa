@@ -1,7 +1,7 @@
 const configuracaoRepository = require('../repositories/configuracaoRepository')
 
-async function listConfiguracoes() {
-  return await configuracaoRepository.findAll()
+async function listConfiguracoes(usuarioId) {
+  return await configuracaoRepository.findAll(usuarioId)
 }
 
 async function getConfiguracaoById(id) {

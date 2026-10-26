@@ -3,7 +3,9 @@ const db = dataBase.pool
 
 async function findAll() {
   const [rows] = await db.execute(
-    `SELECT rg.id_registro, rg.id_usuario, rg.nivel_glicose, rg.data_hora, p.descricao AS periodo
+    `SELECT rg.id_registro, rg.id_usuario, rg.nivel_glicose,
+            to_char(rg.data_hora, 'YYYY-MM-DD HH24:MI:SS') AS data_hora,
+            p.descricao AS periodo
      FROM registroglicose rg
      LEFT JOIN periodo p ON p.id_periodo = rg.id_periodo
      ORDER BY rg.id_registro ASC`
@@ -14,7 +16,9 @@ async function findAll() {
 
 async function findById(id) {
   const [rows] = await db.execute(
-    `SELECT rg.id_registro, rg.id_usuario, rg.nivel_glicose, rg.data_hora, p.descricao AS periodo
+    `SELECT rg.id_registro, rg.id_usuario, rg.nivel_glicose,
+            to_char(rg.data_hora, 'YYYY-MM-DD HH24:MI:SS') AS data_hora,
+            p.descricao AS periodo
      FROM registroglicose rg
      LEFT JOIN periodo p ON p.id_periodo = rg.id_periodo
      WHERE rg.id_registro = ?`,
@@ -30,7 +34,7 @@ async function findDetalhadoById(id) {
       rg.id_registro,
       rg.id_usuario,
       rg.nivel_glicose,
-      rg.data_hora,
+      to_char(rg.data_hora, 'YYYY-MM-DD HH24:MI:SS') AS data_hora,
       rg.id_periodo,
       rg.observacao,
       p.descricao AS periodo_descricao,
@@ -39,7 +43,7 @@ async function findDetalhadoById(id) {
       ri.unidade_insulina,
       ti.nome AS tipo_insulina_nome,
       a.id_alarme,
-      a.data_hora AS lembrete_data_hora,
+      to_char(a.data_hora, 'YYYY-MM-DD HH24:MI:SS') AS lembrete_data_hora,
       a.id_periodo AS lembrete_id_periodo,
       a.tem_som AS lembrete_tem_som,
       a.tem_vibracao AS lembrete_tem_vibracao,
@@ -67,7 +71,9 @@ async function findByUserId(id_usuario, quantidade) {
   const limit = quantidade ? ` LIMIT ${quantidade}` : ''
 
   const [rows] = await db.execute(
-    `SELECT rg.id_registro, rg.id_usuario, rg.nivel_glicose, rg.data_hora, p.descricao AS periodo
+    `SELECT rg.id_registro, rg.id_usuario, rg.nivel_glicose,
+            to_char(rg.data_hora, 'YYYY-MM-DD HH24:MI:SS') AS data_hora,
+            p.descricao AS periodo
      FROM registroglicose rg
      LEFT JOIN periodo p ON p.id_periodo = rg.id_periodo
      WHERE rg.id_usuario = ?
@@ -93,7 +99,9 @@ async function create(registroGlicose) {
     const idRegistro = insertedRows[0].id_registro
 
     const [rows] = await conn.execute(
-      `SELECT rg.id_registro, rg.id_usuario, rg.nivel_glicose, rg.data_hora, p.descricao AS periodo
+      `SELECT rg.id_registro, rg.id_usuario, rg.nivel_glicose,
+              to_char(rg.data_hora, 'YYYY-MM-DD HH24:MI:SS') AS data_hora,
+              p.descricao AS periodo
        FROM registroglicose rg
        LEFT JOIN periodo p ON p.id_periodo = rg.id_periodo
        WHERE rg.id_registro = ?`,
@@ -124,7 +132,9 @@ async function update(id, registroGlicose) {
     )
 
     const [rows] = await conn.execute(
-      `SELECT rg.id_registro, rg.id_usuario, rg.nivel_glicose, rg.data_hora, p.descricao AS periodo
+      `SELECT rg.id_registro, rg.id_usuario, rg.nivel_glicose,
+              to_char(rg.data_hora, 'YYYY-MM-DD HH24:MI:SS') AS data_hora,
+              p.descricao AS periodo
        FROM registroglicose rg
        LEFT JOIN periodo p ON p.id_periodo = rg.id_periodo
        WHERE rg.id_registro = ?`,
@@ -304,7 +314,9 @@ async function findByUserIdAndPeriod(id_usuario, dataInicio, dataFim, ordem = 'D
   const ordemData = ordem === 'ASC' ? 'ASC' : 'DESC'
 
   const [rows] = await db.execute(
-    `SELECT rg.id_registro, rg.id_usuario, rg.nivel_glicose, rg.data_hora, p.descricao AS periodo
+    `SELECT rg.id_registro, rg.id_usuario, rg.nivel_glicose,
+            to_char(rg.data_hora, 'YYYY-MM-DD HH24:MI:SS') AS data_hora,
+            p.descricao AS periodo
      FROM registroglicose rg
      LEFT JOIN periodo p ON p.id_periodo = rg.id_periodo
      WHERE rg.id_usuario = ? AND rg.data_hora BETWEEN ? AND ?

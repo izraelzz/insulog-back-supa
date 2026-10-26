@@ -33,4 +33,11 @@ function getLocalIP() {
   return 'localhost';
 }
 
-startServer();
+startServer().catch(error => {
+  console.error('Falha ao iniciar servidor:', {
+    name: error.name,
+    code: error.code,
+    message: error.message
+  })
+  process.exitCode = 1
+});

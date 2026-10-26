@@ -11,9 +11,10 @@ function formatAlarme(alarme) {
   }
 }
 
-async function findAll() {
+async function findAll(usuarioId) {
   const [rows] = await db.execute(
-    'SELECT id_alarme, id_usuario, data_hora, id_periodo, id_registro, dias_semana, ativo, tem_som, tem_vibracao FROM alarme ORDER BY id_alarme ASC'
+    "SELECT id_alarme, id_usuario, to_char(data_hora, 'YYYY-MM-DD HH24:MI:SS') AS data_hora, id_periodo, id_registro, dias_semana, ativo, tem_som, tem_vibracao FROM alarme WHERE id_usuario = ? ORDER BY id_alarme ASC",
+    [usuarioId]
   )
 
   return rows.map(formatAlarme)
@@ -21,7 +22,7 @@ async function findAll() {
 
 async function findByUsuarioId(usuarioId) {
   const [rows] = await db.execute(
-    'SELECT id_alarme, id_usuario, data_hora, id_periodo, id_registro, dias_semana, ativo, tem_som, tem_vibracao FROM alarme WHERE id_usuario = ? ORDER BY data_hora ASC',
+    "SELECT id_alarme, id_usuario, to_char(data_hora, 'YYYY-MM-DD HH24:MI:SS') AS data_hora, id_periodo, id_registro, dias_semana, ativo, tem_som, tem_vibracao FROM alarme WHERE id_usuario = ? ORDER BY data_hora ASC",
     [usuarioId]
   )
   return rows.map(formatAlarme)
@@ -29,7 +30,7 @@ async function findByUsuarioId(usuarioId) {
 
 async function findById(id) {
   const [rows] = await db.execute(
-    'SELECT id_alarme, id_usuario, data_hora, id_periodo, id_registro, dias_semana, ativo, tem_som, tem_vibracao FROM alarme WHERE id_alarme = ?',
+    "SELECT id_alarme, id_usuario, to_char(data_hora, 'YYYY-MM-DD HH24:MI:SS') AS data_hora, id_periodo, id_registro, dias_semana, ativo, tem_som, tem_vibracao FROM alarme WHERE id_alarme = ?",
     [id]
   )
 

@@ -42,7 +42,6 @@ async function deleteById(req, res, next) {
 
 async function create(req, res, next) {
   try {
-    console.log('Request body:', req.body)
     const user = await userService.createUser(req.body)
     return res.status(201).json(user)
   } catch (error) {

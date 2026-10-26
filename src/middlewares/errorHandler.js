@@ -1,5 +1,9 @@
 function errorHandler(error, req, res, next) {
-  console.error(error)
+  console.error('Falha na requisicao', {
+    name: error.name,
+    code: error.code,
+    statusCode: error.statusCode
+  })
 
   if (error.code === '23505') {
     return res.status(409).json({

@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --test",
     "test:unit": "node --test test/unit/*.test.cjs",
-    "test:system": "node --test test/system/glicose.test.cjs",
+    "test:reports": "node --test test/*.test.cjs",
+    "test:system": "node --test test/system/*.test.cjs",
     "test:db:prepare": "node scripts/prepare-test-db.cjs"
   },
   "keywords": [],
@@ -17,7 +18,8 @@
     "dotenv": "^17.3.1",
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
+    "pdfkit": "^0.20.2",
     "pg": "^8.16.3",
-    "pdfkit": "^0.20.2"
+    "svg-to-pdfkit": "^0.1.8"
   }
 }

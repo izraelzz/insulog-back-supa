@@ -20,6 +20,19 @@ const pgPool = new Pool({
   ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false }
 })
 
+function assertDatabaseConfiguration(config = process.env) {
+  if (config.DATABASE_URL || config.SUPABASE_DB_URL) return
+
+  const missing = ['DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME']
+    .filter(name => !config[name])
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Configure DATABASE_URL ou SUPABASE_DB_URL, ou preencha as variaveis PostgreSQL: ${missing.join(', ')}.`
+    )
+  }
+}
+
 function toPostgresQuery(sql, values = []) {
   let index = 0
   const text = sql.replace(/\?/g, () => `$${++index}`)
@@ -59,17 +72,19 @@ const pool = {
 }
 
 async function testDatabaseConnection() {
+  assertDatabaseConfiguration()
+  const conn = await pool.getConnection()
+
   try {
-    const conn = await pool.getConnection()
     await conn.execute('SELECT 1')
-    console.log("Banco conectado com sucesso!");
+    console.log('Banco conectado com sucesso!')
+  } finally {
     conn.release()
-  } catch (error) {
-    console.error("Erro ao conectar no banco:", error.message)
   }
 }
 
 module.exports = {
   pool,
   testDatabaseConnection,
+  assertDatabaseConfiguration
 };

@@ -1,16 +1,20 @@
 const express = require('express');
 const userController = require('../controllers/userController')
+const {
+  requireAuth,
+  requireOwnUserParam,
+  denyUserDirectoryAccess
+} = require('../middlewares/requireAuth')
 
 const router = express.Router();
 
-console.log('opa: '+router);
+router.post('/', userController.create)
 
-router.get('/', userController.index);
-router.get('/:id', userController.show);
-router.get('/:tipo_usuario', userController.showByType);
+router.get('/', requireAuth, denyUserDirectoryAccess);
+router.get('/:id', requireAuth, requireOwnUserParam, userController.show);
+router.get('/:tipo_usuario', requireAuth, denyUserDirectoryAccess);
 
-router.post('/', userController.create);
-router.delete('/:id', userController.deleteById);
-router.put('/:id', userController.update);
+router.delete('/:id', requireAuth, requireOwnUserParam, userController.deleteById);
+router.put('/:id', requireAuth, requireOwnUserParam, userController.update);
 
 module.exports = router;

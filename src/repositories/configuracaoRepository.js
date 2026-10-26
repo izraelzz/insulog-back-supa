@@ -1,9 +1,10 @@
 const dataBase = require('../config/database')
 const db = dataBase.pool
 
-async function findAll() {
+async function findAll(usuarioId) {
   const [rows] = await db.execute(
-    'SELECT id_configuracao, id_usuario, idioma, tema, notificacoes FROM configuracao ORDER BY id_configuracao ASC'
+    'SELECT id_configuracao, id_usuario, idioma, tema, notificacoes FROM configuracao WHERE id_usuario = ? ORDER BY id_configuracao ASC',
+    [usuarioId]
   )
 
   return rows

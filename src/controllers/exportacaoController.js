@@ -2,7 +2,7 @@ const exportacaoService = require('../services/exportacaoService')
 
 async function index(req, res, next) {
   try {
-    const exportacoes = await exportacaoService.listExportacoes()
+    const exportacoes = await exportacaoService.listExportacoes(req.auth.userId)
     return res.status(200).json(exportacoes)
   } catch (error) {
     next(error)
@@ -49,6 +49,7 @@ async function deleteById(req, res, next) {
 }
 
 async function gerarRelatorio(req, res, next) {
+  res.setHeader('Cache-Control', 'no-store')
   try {
     const { id_usuario, dataInicio, dataFim, formato } = req.query
     const arquivo = await exportacaoService.gerarRelatorio({
@@ -62,6 +63,7 @@ async function gerarRelatorio(req, res, next) {
     res.setHeader('Content-Type', arquivo.contentType)
     res.setHeader('Content-Disposition', `attachment; filename="${arquivo.nomeArquivo}"`)
     res.setHeader('Content-Length', arquivo.buffer.length)
+    res.setHeader('X-Content-Type-Options', 'nosniff')
     return res.end(arquivo.buffer)
   } catch (error) {
     next(error)

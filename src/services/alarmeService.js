@@ -29,8 +29,8 @@ function normalizarBooleano(valor, valorPadrao, nomeCampo) {
   throw error
 }
 
-async function listAlarmes() {
-  return await alarmeRepository.findAll()
+async function listAlarmes(usuarioId) {
+  return await alarmeRepository.findAll(usuarioId)
 }
 
 async function getAlarmesByUsuarioId(usuarioId) {

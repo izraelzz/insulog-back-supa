@@ -5,7 +5,10 @@ const { once } = require('node:events')
 const { randomUUID } = require('node:crypto')
 const { setTimeout: delay } = require('node:timers/promises')
 const path = require('node:path')
+const { randomBytes } = require('node:crypto')
 const { testDatabaseUrl, connectTestDatabase, waitForDatabase } = require('../../scripts/system-database.cjs')
+const { issueToken } = require('../../src/services/authTokenService')
+const systemTokenSecret = randomBytes(32).toString('hex')
 
 function waitForPort(child) {
   let output = ''
@@ -80,16 +83,22 @@ test('sistema: registra glicose e consulta histórico persistido com média 100'
     'INSERT INTO usuario (nome, email, senha, tipo_login, tipo_usuario) VALUES ($1, $2, $3, $4, $5) RETURNING id_usuario',
     ['Fixture sistema', `${randomUUID()}@example.invalid`, 'fixture-sem-login', 'email', 'paciente']
   )).rows[0].id_usuario
+  const previousSecret = process.env.AUTH_TOKEN_SECRET
+  process.env.AUTH_TOKEN_SECRET = systemTokenSecret
+  const accessToken = issueToken({ id_usuario: usuarioId, tipo_usuario: 'paciente' })
+  if (previousSecret === undefined) delete process.env.AUTH_TOKEN_SECRET
+  else process.env.AUTH_TOKEN_SECRET = previousSecret
   periodoId = (await pool.query('INSERT INTO periodo (descricao) VALUES ($1) RETURNING id_periodo', ['Período sistema'])).rows[0].id_periodo
   child = fork(path.join(__dirname, '../../src/server.js'), [], {
     env: { ...process.env, NODE_ENV: 'test', TZ: 'UTC', PORT: '0',
-      DATABASE_URL: connectionString, SUPABASE_DB_URL: '', DB_SSL: 'false' },
+      DATABASE_URL: connectionString, SUPABASE_DB_URL: '', DB_SSL: 'false',
+      AUTH_TOKEN_SECRET: systemTokenSecret },
     stdio: ['ignore', 'pipe', 'pipe', 'ipc']
   })
   const base = await waitForPort(child)
   await waitForApi(base)
   const response = await fetch(`${base}/registros-glicose`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
     body: JSON.stringify({ id_usuario: usuarioId, id_periodo: periodoId,
       nivel_glicose: 100, data_hora: '2026-01-15 12:00:00', observacao: 'Fixture sistema' }),
     signal: AbortSignal.timeout(5000)
@@ -99,7 +108,7 @@ test('sistema: registra glicose e consulta histórico persistido com média 100'
   assert.ok(Number.isInteger(created.id_registro) && created.id_registro > 0)
   assert.deepEqual(created, {
     id_registro: created.id_registro,
-    glicose: { nivel: 100, unidade: 'mg/dL', data_hora: '2026-01-15T12:00:00.000Z' },
+    glicose: { nivel: 100, unidade: 'mg/dL', data_hora: '2026-01-15 12:00:00' },
     periodo: { id_periodo: periodoId, descricao: 'Período sistema' },
     observacao: 'Fixture sistema', insulina: null, lembrete: null
   })
@@ -107,6 +116,7 @@ test('sistema: registra glicose e consulta histórico persistido com média 100'
   // Usuário exclusivo desta execução: o intervalo contém somente a medição criada.
   const query = new URLSearchParams({ dataInicio: '2026-01-15 00:00:00', dataFim: '2026-01-15 23:59:59' })
   const historyResponse = await fetch(`${base}/registros-glicose/usuario/${usuarioId}/historico?${query}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
     signal: AbortSignal.timeout(5000)
   })
   const history = await historyResponse.json()
@@ -114,7 +124,7 @@ test('sistema: registra glicose e consulta histórico persistido com média 100'
   assert.deepEqual(history, {
     media: 100, totalBaixos: 0, totalNormais: 1, totalAlertas: 0,
     statusMedia: 1, statusMediaDescricao: 'Normal',
-    registros: [{ id: created.id_registro, horaDoRegistro: '2026-01-15T12:00:00.000Z',
+    registros: [{ id: created.id_registro, horaDoRegistro: '2026-01-15 12:00:00',
       periodo: 'Período sistema', nivelGlicose: 100, status: 1, statusDescricao: 'Normal' }]
   })
 })

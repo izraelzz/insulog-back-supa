@@ -2,7 +2,7 @@ const alarmeService = require('../services/alarmeService')
 
 async function index(req, res, next) {
   try {
-    const alarmes = await alarmeService.listAlarmes()
+    const alarmes = await alarmeService.listAlarmes(req.auth.userId)
     return res.status(200).json(alarmes)
   } catch (error) {
     next(error)

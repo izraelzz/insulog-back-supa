@@ -1,9 +1,10 @@
 const dataBase = require('../config/database')
 const db = dataBase.pool
 
-async function findAll() {
+async function findAll(usuarioId) {
   const [rows] = await db.execute(
-    'SELECT id_exportacao, id_usuario, data, descricao FROM exportacao ORDER BY id_exportacao ASC'
+    'SELECT id_exportacao, id_usuario, data, descricao FROM exportacao WHERE id_usuario = ? ORDER BY id_exportacao ASC',
+    [usuarioId]
   )
 
   return rows
@@ -97,7 +98,7 @@ async function findDadosRelatorio(idUsuario, dataInicio, dataFim) {
     `SELECT
       rg.id_registro,
       rg.nivel_glicose,
-      rg.data_hora,
+      to_char(rg.data_hora, 'YYYY-MM-DD HH24:MI:SS') AS data_hora,
       rg.observacao,
       p.descricao AS periodo,
       ri.id_registro_insulina,
@@ -107,7 +108,9 @@ async function findDadosRelatorio(idUsuario, dataInicio, dataFim) {
     LEFT JOIN periodo p ON p.id_periodo = rg.id_periodo
     LEFT JOIN registroinsulina ri ON ri.id_registro = rg.id_registro
     LEFT JOIN tipoinsulina ti ON ti.id_tipo_insulina = ri.id_tipo_insulina
-    WHERE rg.id_usuario = ? AND rg.data_hora BETWEEN ? AND ?
+    WHERE rg.id_usuario = ?
+      AND rg.data_hora >= ?::timestamp
+      AND rg.data_hora < (?::date + INTERVAL '1 day')
     ORDER BY rg.data_hora ASC, ri.id_registro_insulina ASC`,
     [idUsuario, dataInicio, dataFim]
   )
