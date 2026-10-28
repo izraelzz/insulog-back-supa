@@ -35,16 +35,9 @@ function verifyHashedPassword(password, storedPassword) {
 }
 
 function verifyPassword(password, storedPassword) {
-  if (!storedPassword) {
-    return false
-  }
-
-  if (isHashedPassword(storedPassword)) {
-    return verifyHashedPassword(password, storedPassword)
-  }
-
-  // Compatibilidade temporaria com usuarios antigos salvos em texto puro.
-  return storedPassword === password
+  return Boolean(storedPassword) &&
+    isHashedPassword(storedPassword) &&
+    verifyHashedPassword(password, storedPassword)
 }
 
 module.exports = {
