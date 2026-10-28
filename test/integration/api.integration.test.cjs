@@ -236,7 +236,7 @@ test('rotas de vínculo exigem papel correto e usam a identidade assinada no JWT
   assert.deepEqual(redeemed.body, { patientId: 42, code: 'INSU-ABCD2345' })
 })
 
-test('exportação de relatório permanece pública temporariamente', async t => {
+test('exportação de relatório exige autenticação e limita a identidade ao próprio usuário', async t => {
   const original = exportacaoService.gerarRelatorio
   t.after(() => { exportacaoService.gerarRelatorio = original })
   exportacaoService.gerarRelatorio = async () => ({
@@ -247,7 +247,9 @@ test('exportação de relatório permanece pública temporariamente', async t =>
 
   const response = await request(
     'GET',
-    '/exportacoes/relatorio?id_usuario=42&dataInicio=2026-01-01&dataFim=2026-01-02'
+    '/exportacoes/relatorio?id_usuario=42&dataInicio=2026-01-01&dataFim=2026-01-02',
+    undefined,
+    { Authorization: `Bearer ${issueToken({ id_usuario: 42, tipo_usuario: 'paciente' })}` }
   )
   assert.equal(response.statusCode, 200)
   assert.equal(response.body, 'fixture-report')

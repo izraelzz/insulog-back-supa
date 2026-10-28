@@ -5,10 +5,18 @@ const {
   requireOwnUserId,
   requireOwnedResource
 } = require('../middlewares/requireAuth')
+const { createRateLimit } = require('../middlewares/loginRateLimit')
 
 const router = express.Router()
+const reportRateLimit = createRateLimit('report')
 
-router.get('/relatorio', exportacaoController.gerarRelatorio)
+router.get(
+  '/relatorio',
+  reportRateLimit,
+  requireAuth,
+  requireOwnUserId,
+  exportacaoController.gerarRelatorio
+)
 
 router.use(requireAuth)
 
