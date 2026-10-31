@@ -5,10 +5,12 @@ const {
   requireOwnUserParam,
   denyUserDirectoryAccess
 } = require('../middlewares/requireAuth')
+const { createRateLimit } = require('../middlewares/loginRateLimit')
 
 const router = express.Router();
+const registrationRateLimit = createRateLimit('registration')
 
-router.post('/', userController.create)
+router.post('/', registrationRateLimit, userController.create)
 
 router.get('/', requireAuth, denyUserDirectoryAccess);
 router.get('/:id', requireAuth, requireOwnUserParam, userController.show);

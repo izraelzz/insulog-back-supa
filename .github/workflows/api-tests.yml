@@ -53,5 +53,8 @@ jobs:
       - name: Executar verificações existentes
         run: node --test test/smoke.test.cjs test/integration/api.integration.test.cjs
 
+      - name: Executar testes de segurança
+        run: node --test test/security/*.test.js
+
       - name: Executar teste de sistema
         run: npm run test:system

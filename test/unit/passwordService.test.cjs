@@ -12,8 +12,8 @@ test('senha gera hash scrypt com salt aleatorio e aceita somente a senha correta
   assert.equal(verifyPassword('senha-ficticia', second), true)
 })
 
-test('senhas legadas em texto simples continuam sendo comparadas', () => {
-  assert.equal(verifyPassword('legada', 'legada'), true)
+test('senhas legadas em texto simples sao rejeitadas', () => {
+  assert.equal(verifyPassword('legada', 'legada'), false)
   assert.equal(verifyPassword('outra', 'legada'), false)
 })
 
