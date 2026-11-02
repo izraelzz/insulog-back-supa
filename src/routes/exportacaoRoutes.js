@@ -2,6 +2,7 @@ const express = require('express')
 const exportacaoController = require('../controllers/exportacaoController')
 const {
   requireAuth,
+  requireOwnOrLinkedPatientId,
   requireOwnUserId,
   requireOwnedResource
 } = require('../middlewares/requireAuth')
@@ -14,7 +15,7 @@ router.get(
   '/relatorio',
   reportRateLimit,
   requireAuth,
-  requireOwnUserId,
+  requireOwnOrLinkedPatientId,
   exportacaoController.gerarRelatorio
 )
 
