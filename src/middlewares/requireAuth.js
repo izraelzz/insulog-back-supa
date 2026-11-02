@@ -52,6 +52,36 @@ function requireOwnUserId(req, res, next) {
   return next()
 }
 
+function requireOwnOrLinkedPatientId(req, res, next) {
+  const requestedId = req.query.id_usuario
+  const parsedId = typeof requestedId === 'string' && /^[1-9]\d*$/.test(requestedId)
+    ? Number(requestedId)
+    : typeof requestedId === 'number' ? requestedId : NaN
+
+  if (!Number.isSafeInteger(parsedId)) {
+    return res.status(403).json({ message: 'Acesso negado aos dados de outro usuario.' })
+  }
+
+  if (parsedId === req.auth.userId) {
+    return next()
+  }
+
+  if (req.auth.role !== 'medico') {
+    return res.status(403).json({ message: 'Acesso negado aos dados de outro usuario.' })
+  }
+
+  return pool.execute(
+    'SELECT id_usuario FROM paciente WHERE id_medico = ? AND id_usuario = ? LIMIT 1',
+    [req.auth.userId, parsedId]
+  ).then(([rows]) => {
+    if (!rows[0]) {
+      return res.status(403).json({ message: 'Acesso negado aos dados de outro usuario.' })
+    }
+
+    return next()
+  }).catch(next)
+}
+
 function requireOwnUserParam(req, res, next) {
   const requestedId = typeof req.params.id === 'string' && /^[1-9]\d*$/.test(req.params.id)
     ? Number(req.params.id)
@@ -158,6 +188,7 @@ module.exports = {
   requirePatient,
   denyUserDirectoryAccess,
   requireOwnUserId,
+  requireOwnOrLinkedPatientId,
   requireOwnUserParam,
   requireOwnedResource,
   requireOwnedGlucoseRecord,

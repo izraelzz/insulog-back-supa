@@ -157,3 +157,44 @@ test('IDOR: usuário não gera relatório de outra conta', async t => {
   assert.equal(response.statusCode, 403)
   assert.equal(generate.mock.callCount(), 0)
 })
+
+test('médico consegue exportar relatório de paciente vinculado', async t => {
+  const execute = t.mock.method(pool, 'execute', async () => [[{ id_usuario: 42 }], {}])
+  const generate = t.mock.method(exportacaoService, 'gerarRelatorio', async () => ({
+    buffer: Buffer.from('relatorio-paciente-vinculado'),
+    nomeArquivo: 'relatorio-paciente.pdf',
+    contentType: 'application/pdf'
+  }))
+
+  const response = await request(
+    'GET',
+    '/exportacoes/relatorio?id_usuario=42&dataInicio=2026-01-01&dataFim=2026-01-02',
+    undefined,
+    bearer(7, 'medico')
+  )
+
+  assert.equal(response.statusCode, 200)
+  assert.equal(response.body, 'relatorio-paciente-vinculado')
+  assert.deepEqual(execute.mock.calls[0].arguments, [
+    'SELECT id_usuario FROM paciente WHERE id_medico = ? AND id_usuario = ? LIMIT 1',
+    [7, 42]
+  ])
+  assert.equal(generate.mock.callCount(), 1)
+})
+
+test('médico não exporta relatório de paciente sem vínculo', async t => {
+  t.mock.method(pool, 'execute', async () => [[], {}])
+  const generate = t.mock.method(exportacaoService, 'gerarRelatorio', async () => {
+    throw new Error('relatório de paciente sem vínculo não deveria ser gerado')
+  })
+
+  const response = await request(
+    'GET',
+    '/exportacoes/relatorio?id_usuario=42&dataInicio=2026-01-01&dataFim=2026-01-02',
+    undefined,
+    bearer(7, 'medico')
+  )
+
+  assert.equal(response.statusCode, 403)
+  assert.equal(generate.mock.callCount(), 0)
+})

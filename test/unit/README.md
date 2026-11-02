@@ -69,4 +69,4 @@ Os testes de relatório ficam em `test/*.test.cjs` e podem ser executados sem Po
 npm run test:reports
 ```
 
-Eles cobrem os seis módulos de análise, métricas e limites glicêmicos, geração/estrutura de PDF e XLSX, filtros e validações da rota HTTP. A rota `GET /exportacoes/relatorio` permanece pública temporariamente por compatibilidade com o Flutter; a autorização por usuário continua pendente antes do uso com dados reais.
+Eles cobrem os seis módulos de análise, métricas e limites glicêmicos, geração/estrutura de PDF e XLSX, filtros e validações da rota HTTP. A rota `GET /exportacoes/relatorio` exige autenticação; pacientes podem exportar os próprios dados e médicos somente os dados de pacientes vinculados.
