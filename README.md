@@ -66,6 +66,8 @@ A API expõe endpoints como:
 - O servidor usa `src/server.js` como ponto de entrada.
 - A aplicação escuta na porta definida em `PORT` ou, se não houver, usa `3000`.
 - O projeto usa `dotenv` para carregar variáveis do arquivo `.env` automaticamente.
+- O CORS permite o frontend local (`http://localhost:5173`) e o site publicado
+  (`https://insulog-web.vercel.app`). Atualize a lista em `src/app.js` se o domínio mudar.
 
 ## Troubleshooting
 
